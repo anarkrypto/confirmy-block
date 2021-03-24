@@ -1,5 +1,5 @@
 const axios = require("axios")
-const { node, worker } = require("./config.json")
+const { node, worker } = require("../config.json")
 
 const postRPC = function (data, nodeAddress = node) {
     return new Promise(async function (resolve, reject) {

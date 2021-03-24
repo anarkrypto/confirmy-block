@@ -10,6 +10,9 @@ It doesn't always work, it depends on some factors like confirmation of the enti
     cd confirmy-blocks
 ```
 
+#### Config
+Edit `config.json`, enter the address of a nano node and a valid worker. They can be the same
+
 #### Usage:
 
 ```
