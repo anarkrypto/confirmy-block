@@ -1,0 +1,6 @@
+{
+    "node": "https://rpc.p2pow.online",
+    "worker": "http://[::1]:7076",
+    "max_difficulty_send": "100",
+    "max_difficulty_receive": "6400"
+}
