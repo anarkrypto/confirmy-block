@@ -4,10 +4,11 @@ This is a experimental script to help confirm unconfirmed Nano transactions.
 
 It doesn't always work, it depends on some factors like confirmation of the entire previous block chain and network status
 
-#### Clone
+#### Clone and install dependencies
 ```
     git clone https://github.com/anarkrypto/confirmy-block
     cd confirmy-blocks
+    npm install
 ```
 
 #### Config
