@@ -26,8 +26,22 @@ const postRPC = function (data, nodeAddress = node) {
     })
 }
 
+function account_info(account) {
+    return new Promise((resolve, reject) => {
+        const data = {
+            action: "account_info",
+            account: account
+        }
+        postRPC(data)
+            .then((res) => {
+                resolve(res)
+            }).catch((err) => {
+                reject(err)
+            })
+    })
+}
 
-function account_history(account, count = -1, reverse = false) {
+function account_history(account, count = -1, reverse = false, head = false) {
     return new Promise((resolve, reject) => {
         let data = {
             "action": "account_history",
@@ -35,6 +49,7 @@ function account_history(account, count = -1, reverse = false) {
             "count": count,
             "reverse": reverse
         }
+        if (head) data.head = head
         postRPC(data)
             .then((res) => {
                 try {
@@ -94,7 +109,6 @@ function work_generate(hash, difficulty) {
     })
 }
 
-
 function broadcast(block_json) {
     return new Promise((resolve, reject) => {
         const data = {
@@ -118,6 +132,7 @@ function broadcast(block_json) {
 
 
 module.exports = {
+    account_info,
     account_history,
     work_generate,
     block_info,
