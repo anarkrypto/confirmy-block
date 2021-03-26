@@ -32,7 +32,7 @@ function fromHex(s) {
 }
 
 function work_validate(hash, work, difficulty) {
-    let base_difficulty = BigInt('0x' + difficulty) //BigInt('0x' + BASE_DIFFICULTY)
+    let base_difficulty = BigInt('0x' + difficulty)
     const threshold = getWorkThreshold(fromHex(hash), '0x' + work, base_difficulty);
     const multiplier = thresholdToMultiplier(threshold, base_difficulty);
     return { difficulty: threshold.toString(16), multiplier: multiplier }

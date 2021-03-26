@@ -104,7 +104,22 @@ function work_generate(hash, difficulty) {
             .then((res) => {
                 resolve(res)
             }).catch((err) => {
-                reject("Worker error: " + err)
+                reject(err.replace("node", "worker"))
+            })
+    })
+}
+
+function work_cancel(hash) {
+    return new Promise((resolve, reject) => {
+        const data = {
+            action: "work_cancel",
+            hash: hash
+        }
+        postRPC(data, worker)
+            .then((res) => {
+                resolve(res)
+            }).catch((err) => {
+                reject(err.replace("node", "worker"))
             })
     })
 }
@@ -114,7 +129,6 @@ function broadcast(block_json) {
         const data = {
             "action": "process",
             "json_block": "true",
-            "force": true,
             "block": block_json
         }
         postRPC(data)
@@ -130,11 +144,11 @@ function broadcast(block_json) {
     })
 }
 
-
 module.exports = {
     account_info,
     account_history,
-    work_generate,
     block_info,
+    work_generate,
+    work_cancel,
     broadcast
 }
