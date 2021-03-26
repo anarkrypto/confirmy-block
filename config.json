@@ -1,5 +1,5 @@
 {
-    "node": "https://rpc.p2pow.online",
+    "node": "http://rpc.p2pow.online",
     "worker": "http://[::1]:7076",
     "enable_max_difficulty": false,
     "max_difficulty_send": "100",

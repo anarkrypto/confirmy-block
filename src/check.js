@@ -12,7 +12,3 @@ exports.checkHash = function(hash){
         return false
       }
 }
-
-exports.checkIndex = function(index){
-    return Number.isInteger(index) && index >= MIN_INDEX && index <= MAX_INDEX
-}

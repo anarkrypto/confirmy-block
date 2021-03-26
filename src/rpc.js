@@ -18,7 +18,7 @@ const postRPC = function (data, nodeAddress = node) {
                 if (err.response) {
                     reject(err.response.data);
                 } else if (err.request) {
-                    reject("No response from node");
+                    reject("no response from node");
                 } else {
                     reject('Error', err.message);
                 }
@@ -104,7 +104,7 @@ function work_generate(hash, difficulty) {
             .then((res) => {
                 resolve(res)
             }).catch((err) => {
-                reject(err)
+                reject("Worker error: " + err)
             })
     })
 }
