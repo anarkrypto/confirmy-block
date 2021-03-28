@@ -270,7 +270,7 @@ async function main() {
         for (let i in seconds_args) {
             if (seconds_args[i] == "--force") {
                 force = true
-            } else if (seconds_args[i] == "--force") {
+            } else if (seconds_args[i] == "--follow") {
                 follow = true
             } else {
                 console.error("Invalid arg: " + seconds_args[i])
