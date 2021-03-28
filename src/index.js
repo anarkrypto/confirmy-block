@@ -1,12 +1,13 @@
+const readlineSync = require('readline-sync');
 const { work_validate } = require("./work")
-const { account_info, account_history, block_info, work_generate, work_cancel, broadcast } = require("./rpc")
+const { account_info, account_history, block_info, work_generate, work_cancel, broadcast, lowest_frontier } = require("./rpc")
 const { BASE_DIFFICULTY, BASE_DIFFICULTY_RECEIVE } = require("./work")
 const { checkNanoAddress, checkHash } = require("./check")
 const { enable_max_difficulty, max_difficulty_send, max_difficulty_receive } = require("../config.json")
 const { parseNanoAddress } = require("./keys")
 
-const CHECK_CONFIRMATION_TRIES = 200
-const CHECK_CONFIRMATION_SLEEP = 3000 // ms
+const CHECK_CONFIRMATION_TRIES = 720
+const CHECK_CONFIRMATION_SLEEP = 5000 // ms
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -23,13 +24,12 @@ function isConfirmed(blockHash) {
                 }
             })
             .catch((err) => {
-                console.log("")
                 reject(err)
             })
     })
 }
 
-function updateBlock(block) {
+function updateBlock(block, follow = false, force = false) {
     return new Promise(async function (resolve, reject) {
 
         console.info("Subtype: " + block.subtype)
@@ -45,7 +45,36 @@ function updateBlock(block) {
                 .catch((err) => {
                     return reject(err)
                 })
-            if (linked_block.confirmed === false || linked_block.confirmed == "false") return reject("Linked Block is unconfirmed from account " + linked_block.account)
+            if (linked_block.account != block.account && linked_block.confirmed === false || linked_block.confirmed == "false") {
+                console.info("Linked Block is unconfirmed from account " + linked_block.account)
+                if (follow) {
+                    console.info("Following...")
+                    await findUnconfirmed({ account: linked_block.account, follow: follow, sync: true, force: true})
+                } else {
+                    console.info("Do you want to follow this previous chain ?")
+                    let answer = readlineSync.question('Y to yes, N to no, A to all: ');
+                    while (answer.toUpperCase() != "Y" && answer.toUpperCase() != "N" && answer.toUpperCase() != "A") {
+                        console.info("Invalid answer!")
+                        answer = readlineSync.question('Enter Y to yes or N to no, A to all');
+                    }
+                    if (answer.toUpperCase() == "Y") {
+                        console.log("Okay, following.")
+                        await findUnconfirmed({ account: linked_block.account, follow: follow, sync: true, force: true})
+                            .catch((err) => {
+                                return reject(err)
+                            })
+                    } else if (answer.toUpperCase() == "A") {
+                        console.log("Okay, following all.")
+                        follow = true
+                        await findUnconfirmed({ account: linked_block.account, follow: follow, sync: true, force: true })
+                            .catch((err) => {
+                                return reject(err)
+                            })
+                    } else if (answer.toUpperCase() == "N") {
+                        return reject("Okay. Exiting now")
+                    }
+                }
+            }
         }
 
         let target_block_pow = block.previous
@@ -76,7 +105,7 @@ function updateBlock(block) {
                 }
                 let republish = await broadcast(block_json)
                     .then((res) => {
-                        console.info("Broadcasted: " + res.hash)
+                        console.info("Broadcasted: " + block.hash)
                     })
                     .catch((err) => {
                         if (err == "Old block") {
@@ -103,106 +132,171 @@ function updateBlock(block) {
                 console.log("")
                 reject("Time out without confirmation")
             }).catch((err) => {
-                if (err == "Cancelled") resolve(block.hash)
-                reject(err)
+                if (err == "Cancelled") {
+                    resolve(block.hash)
+                } else {
+                    reject(err)
+                }
             })
 
-        //if the confirmation is confirmed by the network, we cancel our PoW
-        while (!work_done) {
-            let confirmed = await isConfirmed(block.hash)
-                .catch((err) => {
-                    console.error(err)
-                })
-            if (confirmed == true) {
-                work_cancel(block.hash)
+        if (!force) {
+            //if the confirmation is confirmed by the network, we cancel our PoW
+            while (!work_done) {
+                let confirmed = await isConfirmed(block.hash)
+                    .catch((err) => {
+                        console.error(err)
+                    })
+                if (confirmed == true) {
+                    work_cancel(block.previous)
+                    console.info("\nBlock is confirmed!")
+                    return resolve(block.hash)
+                }
+                await sleep(CHECK_CONFIRMATION_SLEEP)
             }
-            await sleep(CHECK_CONFIRMATION_SLEEP)
         }
     })
 }
 
-async function findUnconfirmed(target_account, head_block = false) {
-    console.info("Reading recent blocks...")
+async function findUnconfirmed(rec_options) {
+
+    let options = {
+        account: rec_options.account,
+        head_block: false,
+        follow: false,
+        sync: false,
+        force: false
+    }
+
+    if ("head_block" in rec_options) options.head_block = rec_options.head_block
+    if ("follow" in rec_options) options.follow = rec_options.follow
+    if ("sync" in rec_options) options.sync = rec_options.sync
+    if ("force" in rec_options) options.force = rec_options.force
+
     let count = "50" //reads blocks every 50
-    const infoAccount = await account_info(target_account)
+
+    if (options.sync) {
+        options.head_block = await lowest_frontier(options.account)
+            .catch((err) => {
+                console.error(err)
+                process.exit()
+            })
+    }
+
+    const infoAccount = await account_info(options.account)
         .catch((err) => {
             console.error(err)
             process.exit()
         })
     let last_confirmed = infoAccount.confirmation_height_frontier
-    if (head_block) last_confirmed = head_block
+    if (options.head_block !== false) last_confirmed = options.head_block
+
+    console.info("Reading recent blocks...")
     while (infoAccount.frontier != last_confirmed) {
-        await account_history(target_account, count, true, last_confirmed)
+        await account_history(options.account, count, true, last_confirmed)
             .then(async function (history) {
-                if (!head_block) delete history[0] // the first index is the last confirmed, we can delete it
+                if (options.head_block === false || options.sync) delete history[0] // the first index is the last confirmed, we can delete it
                 for (let index in history) {
                     let block_hash = history[index].hash
                     console.info("Checking Block: " + block_hash)
 
                     await block_info(block_hash)
-                        .then(async function(block) {
-                            if (head_block !== false || block.confirmed === false || block.confirmed == "false") {
-                                if (!head_block) console.info("Block unconfirmed!")
-                                last_confirmed = await updateBlock(block)
+                        .then(async function (block) {
+                            if (options.force !== false || (block.confirmed === false || block.confirmed == "false")) {
+                                if (!options.head_block) console.info("Block unconfirmed!")
+
+                                last_confirmed = await updateBlock(block, options.follow, options.sync)
                                     .catch((err) => {
                                         console.error(err)
                                         process.exit()
                                     })
+
                             } else {
                                 console.info("Block already confirmed")
                             }
                         }).catch((err) => {
-                            console.error(err)
+                            console.error("Error checking block: " + err)
                             process.exit()
                         })
-
-
 
                     console.log("")
                 }
             }).catch((err) => {
-                console.error("Error:")
                 console.error(err)
+                if (err == "Block not found") {
+                    console.info("This node may not have its block yet or or there is a fork in your account. You can change the node in config.json")
+                }
+                process.exit()
             })
     }
-    console.info("Finished")
+    console.info("Finished! This account is up to date.")
 }
 
-//get user args input
-const myArgs = process.argv.slice(2)
-if (myArgs[0] == undefined && myArgs[0] == "") {
-    console.error("Nano Account or Block Missing!")
-    return
-} else if (checkNanoAddress(myArgs[0])) {
-    if (myArgs[1] != undefined && myArgs[1] != "") {
-        if (checkHash(myArgs[1])) {
-            findUnconfirmed(myArgs[0], myArgs[1])
-        } else {
-            console.error("Invalid arg: " + myArgs[1])
-        }
-    } else {
-        findUnconfirmed(myArgs[0])
-    }
-} else if (checkHash(myArgs[0])) {
-    let force = false
-    block_info(myArgs[0])
-        .then(async function (block) {
-            if (myArgs[1] != undefined && myArgs[1] == "--force") force = true
-            if (force == true || block.confirmed === false || block.confirmed == "false") {
-                console.info("Found: " + block.hash)
-                await updateBlock(block)
-                    .catch((err) => {
-                        console.error(err)
-                        process.exit()
-                    })
+async function main() {
+    //get user args input
+    const myArgs = process.argv.slice(2)
+    let options = {}
+
+    if (myArgs[0] == undefined && myArgs[0] == "") {
+        console.error("Nano Account or Block Missing!")
+        return
+    } else if (checkNanoAddress(myArgs[0])) {
+
+        options.account = myArgs[0]
+
+        let seconds_args = myArgs.slice(1)
+
+        for (let i in seconds_args) {
+            if (checkHash(seconds_args[i])) {
+                options.head_block = seconds_args[i]
+            } else if (seconds_args[i] == "--sync") {
+                options.sync = true
+            } else if (seconds_args[i] == "--follow") {
+                options.follow = true
+            } else if (seconds_args[i] == "--force") {
+                options.force = true
             } else {
-                console.info("Block already confirmed")
+                console.error("Invalid arg: " + seconds_args[i])
             }
-        }).catch((err) => {
-            console.error(err)
-            process.exit()
-        })
-} else {
-    console.error("Invalid Block or Nano Account!")
-    return
+        }
+
+        findUnconfirmed(options)
+
+    } else if (checkHash(myArgs[0])) {
+        let force = false
+        let follow = false
+
+        let seconds_args = myArgs.slice(1)
+
+        for (let i in seconds_args) {
+            if (seconds_args[i] == "--force") {
+                force = true
+            } else if (seconds_args[i] == "--force") {
+                follow = true
+            } else {
+                console.error("Invalid arg: " + seconds_args[i])
+            }
+        }
+
+        block_info(myArgs[0])
+            .then(async function (block) {
+                if (force === true || block.confirmed === false || block.confirmed == "false") {
+                    console.info("Found: " + block.hash)
+                    await updateBlock(block, follow, force)
+                        .catch((err) => {
+                            console.error(err)
+                            process.exit()
+                        })
+                } else {
+                    console.info("Block already confirmed")
+                }
+            }).catch((err) => {
+                console.error(err)
+                process.exit()
+            })
+    } else {
+        console.error("Invalid Block or Nano Account!")
+        return
+    }
 }
+
+main()

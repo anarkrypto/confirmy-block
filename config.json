@@ -1,5 +1,5 @@
 {
-    "node": "https://proxy.powernode.cc/proxy",
+    "node": "http://rpc2.p2pow.online",
     "worker": "http://[::1]:7076",
     "enable_max_difficulty": false,
     "max_difficulty_send": "100",

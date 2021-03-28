@@ -1,6 +1,3 @@
-const MIN_INDEX = 0
-const MAX_INDEX = Math.pow(2, 32) - 1
-
 exports.checkNanoAddress = function (address) {
     return /^(xrb_|nano_)[13][13-9a-km-uw-z]{59}$/.test(address)
 }
