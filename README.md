@@ -2,12 +2,21 @@
 
 This is a experimental script to help confirm unconfirmed Nano transactions.
 
-- It fetches the first unconfirmed block, increases the PoW and retransmits it to the network, waits for confirmation from PRs and continues to the next block.
+- It fetches the first unconfirmed block, increases the PoW and republish it to the a list of public nodes, waits for confirmation from PRs and continues to the next block.
 - If it detects that the block was confirmed during the new PoW process, it cancels the work and continue to the next block
 - If something goes wrong it exit. So you need to run again
 - If any receive block depends on another unconfirmed block (link), it gives up and exit. So you need to run again in the source account (it will be displayed)
 
-I was successful in confirming hundreds of blocks from a Binance account, using my own node and later verifying the confirmations on nanocrawler.cc and nanolooker.com
+I was successful in confirming hundreds of blocks from a Binance account, using https://rpc.p2pow.online as node, which is configured to show as "confirmed" only blocks with 67% quorum
+
+This script may not work, especially if your account has a fork.
+
+Also note that the network can not take long to confirm these new blocks and increase the PoW will not do any good!
+
+If it takes too long to confirm and does not confirm, the most recommended is to wait.
+You can check your block in nanocrawler.cc and nanolooker.com
+
+!! If you insist on running the script many times, it will increase the difficulty of the Work and it may be impossible to increase it more in the future !!
 
 #### Clone and install dependencies
 ```
@@ -42,34 +51,37 @@ This will ensure that your node will only say that a block is confirmed when the
 [Recommended] Confirms all blocks in an account:
 
 ```
-    node src/index [nano_account]
+    node src/index [nano_account] --sync --force --follow
 ```
 Example:
 ```
-    node src/index nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k
+    node src/index nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k --sync --force --follow
 ```
 
+```--sync```: Gets the lowest frontier from a list of public nodes (nodes.txt)
+```--force```: Forces reconfirmation of blocks
+```--follow```: If a receiving block depends on another chain's confirmation, it automatically follows and confirms blocks from that chain. Without --follow the script will ask you whether you want it or not
 
 Confirms all blocks in an account, starting from a specific block:
 
 ```
-    node src/index [nano_account] [head_block]
+    node src/index [nano_account] [head_block] --force --follow
 ```
 Example:
 ```
-    node src/index nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699
+    node src/index nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow
 ```
 
 
 Confirms a specific block - only use this option if you are sure that all previous blocks are confirmed
 ```
-    node src/index [block_hash] [--force]
+    node src/index [block_hash] --force
 ```
 Option ```--force``` tries to update a single block, even if the node thinks it is already confirmed
 
 Example:
 ```
-    node src/index 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force
+    node src/index 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow
 ```
 
 <br>
