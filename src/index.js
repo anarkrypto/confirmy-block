@@ -6,7 +6,7 @@ const { checkNanoAddress, checkHash } = require("./check")
 const { enable_max_difficulty, max_difficulty_send, max_difficulty_receive } = require("../config.json")
 const { parseNanoAddress } = require("./keys")
 
-const CHECK_CONFIRMATION_TRIES = 720
+const CHECK_CONFIRMATION_TRIES = 7720
 const CHECK_CONFIRMATION_SLEEP = 5000 // ms
 
 function sleep(ms) {
@@ -66,7 +66,7 @@ function updateBlock(block, follow = false, force = false) {
                     } else if (answer.toUpperCase() == "A") {
                         console.log("Okay, following all.")
                         follow = true
-                        await findUnconfirmed({ account: linked_block.account, follow: follow, sync: true, force: true })
+                        await findUnconfirmed({ account: linked_block.account, follow: follow, sync: true, force: force })
                             .catch((err) => {
                                 return reject(err)
                             })
