@@ -135,6 +135,11 @@ function block_info(hash) {
                 }
             }).catch((err) => {
                 if (err.includes("not allowed") || "err" == "Unknown command") {
+                    data = {
+                        "action": "block_info",
+                        "json_block": "true",
+                        "hash": hash
+                    }
                     postRPC(data, node)
                         .then((res) => {
                             if ("contents" in res) {
