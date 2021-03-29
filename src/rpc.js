@@ -169,6 +169,7 @@ function block_info(hash) {
 
 function broadcast(block_json) {
     return new Promise(async function (resolve, reject) {
+        let promises = []
         const data = {
             "action": "process",
             "json_block": "true",
@@ -176,24 +177,26 @@ function broadcast(block_json) {
         }
         let errors = []
         for (let i in nodes) {
-            await postRPC(data, nodes[i])
+            let node = nodes[i]
+            promises.push(postRPC(data, nodes[i])
                 .then((res) => {
                     if ("hash" in res) {
-                        console.info(nodes[i] + " broadcasted")
+                        console.info(node + " broadcasted")
                         //resolve(res)
                     } else {
-                        console.error(nodes[i] + ": " + res)
+                        console.error(node + ": " + res)
                         //reject(res)
                     }
                 }).catch((err) => {
                     if (err == "Old block"){
-                        console.error(nodes[i] + ": " + " broadcasted")
+                        console.error(node + ": " + " broadcasted")
                     } else {
-                        console.error(nodes[i] + ": " + err)
-                        errors.push(nodes[i] + ": " + err)
+                        console.error(node + ": " + err)
+                        errors.push(node + ": " + err)
                     }
-                })
+                }))
         }
+        await Promise.all(promises)
         if (errors.length == nodes.length){
             console.error(errors.join("\n"))
             reject("All nodes have failed")
@@ -201,7 +204,6 @@ function broadcast(block_json) {
         resolve(nodes.length - errors.length)
     })
 }
-
 
 // Work-server commands
 
