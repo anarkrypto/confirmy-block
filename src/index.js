@@ -257,8 +257,12 @@ function findUnconfirmed(rec_options) {
                                 return reject("Error checking block: " + err)
                             })
 
-                        if (options.force !== false || (block.confirmed === false || block.confirmed == "false")) {
-                            if (!options.head_block) console.info("Block unconfirmed!")
+                        let confirmed = true
+                        if(block.confirmed === false || block.confirmed == "false") confirmed = false
+
+                        if (options.force !== false || !confirmed) {
+
+                            if (!options.head_block || !confirmed) console.info("Block unconfirmed!")
 
                             // The first block is the last confirmed according to public nodes
                             // If it is not confirmed in the default node (config.json), we must reconfirm it
@@ -281,16 +285,19 @@ function findUnconfirmed(rec_options) {
                                             return reject(err)
                                         })
 
+                                } else {
+                                    console.info("Already confirmed")
                                 }
-                                first = false
                             } else {
-
+                                
                                 last_confirmed = await updateBlock(block, options.follow, options.force, options.sync)
                                     .catch((err) => {
                                         reject(err)
                                     })
 
                             }
+
+                            first = false
 
                             if (options.target_block == last_confirmed) {
                                 console.info("Sub chain is confirmed")
