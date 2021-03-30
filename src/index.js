@@ -29,7 +29,7 @@ function isConfirmed(blockHash) {
     })
 }
 
-function updateBlock(block, follow = false, force = false) {
+function updateBlock(block, follow = false, force = false, sync = false) {
     return new Promise(async function (resolve, reject) {
 
         let base = BASE_DIFFICULTY, max_difficulty = max_difficulty_send
@@ -47,7 +47,7 @@ function updateBlock(block, follow = false, force = false) {
                 console.info("Linked Block is unconfirmed from account " + linked_block.account)
                 if (follow) {
                     console.info("Following...")
-                    await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow, sync: true, force: true })
+                    await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow})
                         .catch((err) => {
                             return reject(err)
                         })
@@ -61,7 +61,7 @@ function updateBlock(block, follow = false, force = false) {
                     }
                     if (answer.toUpperCase() == "Y") {
                         console.info("Okay, following.")
-                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow, sync: true, force: true })
+                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow})
                             .catch((err) => {
                                 return reject(err)
                             })
@@ -69,7 +69,7 @@ function updateBlock(block, follow = false, force = false) {
                     } else if (answer.toUpperCase() == "A") {
                         console.info("Okay, following all.")
                         follow = true
-                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow, sync: true, force: force })
+                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow})
                             .catch((err) => {
                                 return reject(err)
                             })
@@ -93,6 +93,7 @@ function updateBlock(block, follow = false, force = false) {
 
         let target_workDiff = old_workDiff.difficulty
 
+        //network difficulty
         if (enable_active_difficulty) {
             const activeDiff = await active_difficulty()
                 .catch((err) => {
@@ -144,7 +145,7 @@ function updateBlock(block, follow = false, force = false) {
                         if (err == "Old block") {
                             console.info("Broadcasted: " + block.hash)
                         } else {
-                            reject(err)
+                            return reject(err)
                         }
                     })
 
@@ -163,12 +164,12 @@ function updateBlock(block, follow = false, force = false) {
                     await sleep(CHECK_CONFIRMATION_SLEEP)
                 }
                 console.log("")
-                reject("Time out without confirmation")
+                return reject("Time out without confirmation")
             }).catch((err) => {
                 if (err == "Cancelled") {
-                    resolve(block.hash)
+                    return resolve(block.hash)
                 } else {
-                    reject(err)
+                    return reject(err)
                 }
             })
 
@@ -178,10 +179,11 @@ function updateBlock(block, follow = false, force = false) {
                 let confirmed = await isConfirmed(block.hash)
                     .catch((err) => {
                         console.error(err)
+                        return reject(err)
                     })
                 if (confirmed == true) {
                     work_cancel(block.previous)
-                    console.info("\nBlock is confirmed!")
+                    console.info("Block is confirmed!")
                     return resolve(block.hash)
                 }
                 await sleep(CHECK_CONFIRMATION_SLEEP)
@@ -191,6 +193,7 @@ function updateBlock(block, follow = false, force = false) {
 }
 
 function findUnconfirmed(rec_options) {
+    console.log("find unconfirmed called")
     return new Promise(async function (resolve, reject) {
         let options = {
             account: rec_options.account,
@@ -227,13 +230,13 @@ function findUnconfirmed(rec_options) {
 
         console.info("Reading recent blocks...")
         let first = true
-        while (infoAccount.frontier != last_confirmed) {
+        let break_loop = false
+        while (infoAccount.frontier != last_confirmed && break_loop === false) {
+
+            console.log("i am looping")
+
             await account_history(options.account, count, true, last_confirmed)
                 .then(async function (history) {
-                    if (first === true && (options.head_block === false || options.sync)) {
-                        //delete history[0] // the first index is the last confirmed, we can delete it
-                        //first = false
-                    }
                     for (let index in history) {
                         let block_hash = history[index].hash
                         console.info("Checking Block: " + block_hash)
@@ -271,18 +274,21 @@ function findUnconfirmed(rec_options) {
                                 first = false
                             }
 
-                            last_confirmed = await updateBlock(block, options.follow, options.sync)
+                            last_confirmed = await updateBlock(block, options.follow, options.force, options.sync)
                                 .catch((err) => {
                                     return reject(err)
                                 })
 
-                            if (options.target_block == "last_confirmed") {
+                            if (options.target_block == last_confirmed) {
                                 console.info("Sub chain is confirmed")
+                                break_loop = true
                                 return resolve()
                             }
 
                         } else {
                             console.info("Block already confirmed")
+                            break_loop = true
+                            return resolve()
                         }
 
                         console.log("")
@@ -297,7 +303,7 @@ function findUnconfirmed(rec_options) {
                 })
         }
         console.info("Finished! This account is up to date.")
-        resolve()
+        return resolve()
     })
 }
 
@@ -330,7 +336,7 @@ async function main() {
             }
         }
 
-        findUnconfirmed(options)
+        await findUnconfirmed(options)
             .catch((err) => {
                 console.error(err)
                 process.exit()
@@ -353,7 +359,7 @@ async function main() {
             }
         }
 
-        block_info(myArgs[0])
+        await block_info(myArgs[0])
             .then(async function (block) {
                 if (force === true || block.confirmed === false || block.confirmed == "false") {
                     console.info("Found: " + block.hash)
