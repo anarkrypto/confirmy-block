@@ -1,4 +1,5 @@
 const axios = require("axios")
+
 const { node, worker } = require("../config.json")
 
 const fs = require("fs");
@@ -7,8 +8,10 @@ const nodesPath = path.join(__dirname, '..', 'nodes.txt');
 const nodes = fs.readFileSync(nodesPath).toString().replace(/\r\n/g, '\n').split('\n');
 
 const postRPC = function (data, nodeAddress = node) {
+    let options = {}
+    if (nodeAddress != worker) options.timeout = 1000 * 30 // Wait for 30 seconds, except on the worker
     return new Promise(async function (resolve, reject) {
-        axios.post(nodeAddress, data)
+        axios.post(nodeAddress, data, options)
             .then((res) => {
                 if (typeof res.data === 'object') {
                     if ("error" in res.data) {
@@ -37,37 +40,51 @@ async function lowest_frontier(account) {
         let lowest_nodes = [];
         let lowest_height = Number.POSITIVE_INFINITY;
         let lowest_block = undefined;
-        let heights = [];
+        let heights = []
         let errors = []
+        let promises = []
         for (var i = 0; i < nodes.length; i++) {
-            await account_info(account, nodes[i])
-                .then((accinfo) => {
-                    if (accinfo["confirmation_height"] <= lowest_height) {
-                        if (accinfo["confirmation_height"] < lowest_height) lowest_nodes = [];
-                        lowest_nodes.push(nodes[i]);
-                        lowest_height = accinfo["confirmation_height"];
-                        lowest_block = accinfo["confirmation_height_frontier"];
+            let promise = account_info(account, nodes[i])
+            promises.push(promise)
+            promise.then(() => {
+                process.stdout.write(".")
+            }).catch((err) => {
+                process.stdout.write("*")
+                errors.push(nodes[i] + " error: " + err)
+            })
+        }
+
+        await Promise.allSettled(promises)
+            .then((results) => {
+                console.log("")
+                if (nodes.length == errors.lenght) {
+                    console.error(errors.join("\n"))
+                    reject("All nodes have failed")
+                }
+                results.forEach((result) => {
+
+                    if (result.status == "fulfilled") {
+                        let accinfo = result.value
+                        if (accinfo["confirmation_height"] <= lowest_height) {
+                            if (accinfo["confirmation_height"] < lowest_height) lowest_nodes = [];
+                            lowest_nodes.push(accinfo.node);
+                            lowest_height = accinfo["confirmation_height"];
+                            lowest_block = accinfo["confirmation_height_frontier"];
+                        }
+                        heights.push(accinfo["confirmation_height"]);
                     }
-                    heights.push(accinfo["confirmation_height"]);
-                    process.stdout.write(".")
                 })
-                .catch((err => {
-                    process.stdout.write("*")
-                    errors.push(nodes[i] + " error: " + err)
-                }))
-        }
 
-        console.log("")
+                console.info("Lowest nodes " + lowest_nodes.join(" or "));
+                console.info("Last confirmed block: " + lowest_block + "\n")
 
-        if (nodes.length == errors.lenght){
-            console.error(errors.join("\n"))
-            reject("All nodes have failed")
-        }
+                resolve(lowest_block)
+            })
+            .catch((err) => {
+                console.log("")
+                reject(err)
+            })
 
-        console.info("Lowest nodes " + lowest_nodes.join(" or "));
-        console.info("Last confirmed block: " + lowest_block + "\n")
-
-        resolve(lowest_block)
     })
 }
 
@@ -79,6 +96,7 @@ function account_info(account, nodeAddress = node) {
         }
         postRPC(data, nodeAddress)
             .then((res) => {
+                res.node = nodeAddress
                 resolve(res)
             }).catch((err) => {
                 reject(err)
@@ -91,6 +109,7 @@ function account_history(account, count = -1, reverse = false, head = false) {
         let data = {
             "action": "account_history",
             "account": account,
+            "raw": "true",
             "count": count,
             "reverse": reverse
         }
@@ -181,27 +200,42 @@ function broadcast(block_json) {
             promises.push(postRPC(data, nodes[i])
                 .then((res) => {
                     if ("hash" in res) {
-                        console.info(node + " broadcasted")
+                        console.info(node + ": broadcasted")
                         //resolve(res)
                     } else {
                         console.error(node + ": " + res)
                         //reject(res)
                     }
                 }).catch((err) => {
-                    if (err == "Old block"){
-                        console.error(node + ": " + " broadcasted")
+                    if (err == "Old block") {
+                        console.error(node + ": broadcasted")
                     } else {
                         console.error(node + ": " + err)
                         errors.push(node + ": " + err)
                     }
-                }))
+                })
+            )
         }
         await Promise.all(promises)
-        if (errors.length == nodes.length){
+        if (errors.length == nodes.length) {
             console.error(errors.join("\n"))
             reject("All nodes have failed")
         }
         resolve(nodes.length - errors.length)
+    })
+}
+
+function active_difficulty() {
+    return new Promise((resolve, reject) => {
+        const data = {
+            "action": "active_difficulty"
+        }
+        postRPC(data)
+            .then((res) => {
+                resolve(res)
+            }).catch((err) => {
+                reject(err)
+            })
     })
 }
 
@@ -242,8 +276,9 @@ module.exports = {
     account_info,
     account_history,
     block_info,
-    work_generate,
-    work_cancel,
     broadcast,
-    lowest_frontier
+    active_difficulty,
+    lowest_frontier,
+    work_generate,
+    work_cancel
 }
