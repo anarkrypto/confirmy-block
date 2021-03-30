@@ -9,6 +9,8 @@ const { parseNanoAddress } = require("./keys")
 const CHECK_CONFIRMATION_TRIES = 17280
 const CHECK_CONFIRMATION_SLEEP = 5000 // ms
 
+SAFE_MODE = true
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -244,7 +246,7 @@ function findUnconfirmed(rec_options) {
         while (infoAccount.frontier != last_confirmed && break_loop === false) {
 
             if (last_confirmed == "0000000000000000000000000000000000000000000000000000000000000000") last_confirmed = false
-            
+
             await account_history(options.account, count, true, last_confirmed)
                 .then(async function (history) {
 
@@ -258,7 +260,7 @@ function findUnconfirmed(rec_options) {
                             })
 
                         let confirmed = true
-                        if(block.confirmed === false || block.confirmed == "false") confirmed = false
+                        if (block.confirmed === false || block.confirmed == "false") confirmed = false
 
                         if (options.force !== false || !confirmed) {
 
@@ -289,7 +291,7 @@ function findUnconfirmed(rec_options) {
                                     console.info("Already confirmed")
                                 }
                             } else {
-                                
+
                                 last_confirmed = await updateBlock(block, options.follow, options.force, options.sync)
                                     .catch((err) => {
                                         reject(err)
@@ -339,19 +341,35 @@ async function main() {
 
         options.account = myArgs[0]
 
-        let seconds_args = myArgs.slice(1)
+        let secondary_args = myArgs.slice(1)
 
-        for (let i in seconds_args) {
-            if (checkHash(seconds_args[i])) {
-                options.head_block = seconds_args[i]
-            } else if (seconds_args[i] == "--sync") {
+        for (let i in secondary_args) {
+            if (checkHash(secondary_args[i])) {
+                options.head_block = secondary_args[i]
+                if (SAFE_MODE) {
+                    console.log("Checking previous block...")
+                    await block_info(options.head_block)
+                        .then(async function (previous_block) {
+                            if (previous_block.confirmed === false || previous_block.confirmed == "false") {
+                                console.error("The previous block is not confirmed!")
+                                console.info("Only use blocks as arguments if you are sure that the previous one is confirmed. If you're not sure, use this command: ")
+                                console.info("node src/index " + previous_block.account + " --sync --force --follow")
+                                process.exit()
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(err)
+                            process.exit()
+                        })
+                }
+            } else if (secondary_args[i] == "--sync") {
                 options.sync = true
-            } else if (seconds_args[i] == "--follow") {
+            } else if (secondary_args[i] == "--follow") {
                 options.follow = true
-            } else if (seconds_args[i] == "--force") {
+            } else if (secondary_args[i] == "--force") {
                 options.force = true
             } else {
-                console.error("Invalid arg: " + seconds_args[i])
+                console.error("Invalid arg: " + secondary_args[i])
                 process.exit()
             }
         }
@@ -366,23 +384,40 @@ async function main() {
         let force = false
         let sync = false
 
-        let seconds_args = myArgs.slice(1)
+        let secondary_args = myArgs.slice(1)
 
-        for (let i in seconds_args) {
-            if (seconds_args[i] == "--force") {
+        for (let i in secondary_args) {
+            if (secondary_args[i] == "--force") {
                 force = true
-            } else if (seconds_args[i] == "--follow") {
+            } else if (secondary_args[i] == "--follow") {
                 FOLLOW = true
-            } else if (seconds_args[i] == "--sync") {
+            } else if (secondary_args[i] == "--sync") {
                 sync = true
             } else {
-                console.error("Invalid arg: " + seconds_args[i])
+                console.error("Invalid arg: " + secondary_args[i])
                 process.exit()
             }
         }
 
+        console.log("Reading block...")
         await block_info(myArgs[0])
             .then(async function (block) {
+                if (SAFE_MODE) {
+                    console.log("Checking previous block...")
+                    await block_info(myArgs[0])
+                        .then(async function (previous_block) {
+                            if (previous_block.confirmed === false || previous_block.confirmed == "false") {
+                                console.error("The previous block is not confirmed!")
+                                console.info("Only use blocks as arguments if you are sure that the previous one is confirmed. If you're not sure, use this command: ")
+                                console.info("node src/index " + previous_block.account + " --sync --force --follow")
+                                process.exit()
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(err)
+                            process.exit()
+                        })
+                }
                 if (force === true || block.confirmed === false || block.confirmed == "false") {
                     console.info("Found: " + block.hash)
                     await updateBlock(block, follow, force, sync)
