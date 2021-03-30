@@ -29,7 +29,7 @@ function isConfirmed(blockHash) {
     })
 }
 
-function updateBlock(block, follow = false, force = false, sync = false) {
+function updateBlock(block, follow = FOLLOW, force = false, sync = false) {
     return new Promise(async function (resolve, reject) {
 
         let base = BASE_DIFFICULTY, max_difficulty = max_difficulty_send
@@ -40,18 +40,21 @@ function updateBlock(block, follow = false, force = false, sync = false) {
             // If the receiving link block is also not confirmed, the receiving block cannot be confirmed either
             let linked_block = await block_info(block.link)
                 .catch((err) => {
-                    return reject(err)
+                    reject(err)
                 })
 
             if (linked_block.account != block.account && (force !== false || linked_block.confirmed === false || linked_block.confirmed == "false")) {
-                console.info("Linked Block is unconfirmed from account " + linked_block.account)
+                console.info("Linked Block " + linked_block.hash + " is unconfirmed from account " + linked_block.account)
                 if (follow) {
                     console.info("Following...")
-                    await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow})
-                        .catch((err) => {
-                            return reject(err)
+                    await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow, sync: sync, force: force })
+                        .then((res) => {
+                            console.info("\nReturning to parent chain: " + block.account + "\nBlock: " + block.hash)
+
                         })
-                    console.info("\nReturning to parent chain: " + block.account + "\nBlock: " + block.hash)
+                        .catch((err) => {
+                            reject(err)
+                        })
                 } else {
                     console.info("Do you want to follow this previous chain ?")
                     let answer = readlineSync.question('Y to yes, N to no, A to all: ');
@@ -61,25 +64,33 @@ function updateBlock(block, follow = false, force = false, sync = false) {
                     }
                     if (answer.toUpperCase() == "Y") {
                         console.info("Okay, following.")
-                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow})
-                            .catch((err) => {
-                                return reject(err)
+                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow, sync: sync, force: force })
+                            .then((res) => {
+                                console.info("\nReturning to parent chain: " + block.account + "\nBlock: " + block.hash)
+
                             })
-                        console.info("\nReturning to parent chain: " + block.account + "\nBlock: " + block.hash)
+                            .catch((err) => {
+                                reject(err)
+                            })
                     } else if (answer.toUpperCase() == "A") {
                         console.info("Okay, following all.")
-                        follow = true
-                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow})
-                            .catch((err) => {
-                                return reject(err)
+                        FOLLOW = true
+                        await findUnconfirmed({ account: linked_block.account, target_block: linked_block.hash, follow: follow, sync: sync, force: force })
+                            .then((res) => {
+                                console.info("\nReturning to parent chain: " + block.account + "\nBlock: " + block.hash)
+
                             })
-                        console.info("\nReturning to parent chain: " + block.account + "\nBlock: " + block.hash)
+                            .catch((err) => {
+                                reject(err)
+                            })
                     } else if (answer.toUpperCase() == "N") {
                         return reject("Okay. Exiting now")
                     }
                 }
             }
         }
+
+        await sleep(100)
 
         console.info("Subtype: " + block.subtype)
 
@@ -179,7 +190,7 @@ function updateBlock(block, follow = false, force = false, sync = false) {
                 let confirmed = await isConfirmed(block.hash)
                     .catch((err) => {
                         console.error(err)
-                        return reject(err)
+                        rreject(err)
                     })
                 if (confirmed == true) {
                     work_cancel(block.previous)
@@ -193,7 +204,6 @@ function updateBlock(block, follow = false, force = false, sync = false) {
 }
 
 function findUnconfirmed(rec_options) {
-    console.log("find unconfirmed called")
     return new Promise(async function (resolve, reject) {
         let options = {
             account: rec_options.account,
@@ -217,7 +227,7 @@ function findUnconfirmed(rec_options) {
         if (options.sync) {
             options.head_block = await lowest_frontier(options.account)
                 .catch((err) => {
-                    return reject(err)
+                    reject(err)
                 })
         }
 
@@ -233,10 +243,11 @@ function findUnconfirmed(rec_options) {
         let break_loop = false
         while (infoAccount.frontier != last_confirmed && break_loop === false) {
 
-            console.log("i am looping")
-
+            if (last_confirmed == "0000000000000000000000000000000000000000000000000000000000000000") last_confirmed = false
+            
             await account_history(options.account, count, true, last_confirmed)
                 .then(async function (history) {
+
                     for (let index in history) {
                         let block_hash = history[index].hash
                         console.info("Checking Block: " + block_hash)
@@ -252,12 +263,12 @@ function findUnconfirmed(rec_options) {
                             // The first block is the last confirmed according to public nodes
                             // If it is not confirmed in the default node (config.json), we must reconfirm it
                             // And also reconfirm all previous blocks if necessary
-                            if (first === true && options.sync_default_node === false) {
+                            if (first === true && options.sync_default_node === false && block.previous != "0000000000000000000000000000000000000000000000000000000000000000") {
                                 if (block.confirmed === false || block.confirmed == "false") {
                                     console.info("Synchronizing Node....")
                                     first = block.hash
-                                    while (block.confirmed === false || block.confirmed == "false") {
-                                        console.log("Rewinding 1 block...")
+                                    while ((block.confirmed === false || block.confirmed == "false") && block.previous != "0000000000000000000000000000000000000000000000000000000000000000") {
+                                        console.info("Rewinding 1 block...")
 
                                         block = await block_info(block.previous)
                                             .catch((err) => {
@@ -272,12 +283,14 @@ function findUnconfirmed(rec_options) {
 
                                 }
                                 first = false
-                            }
+                            } else {
 
-                            last_confirmed = await updateBlock(block, options.follow, options.force, options.sync)
-                                .catch((err) => {
-                                    return reject(err)
-                                })
+                                last_confirmed = await updateBlock(block, options.follow, options.force, options.sync)
+                                    .catch((err) => {
+                                        reject(err)
+                                    })
+
+                            }
 
                             if (options.target_block == last_confirmed) {
                                 console.info("Sub chain is confirmed")
@@ -287,18 +300,16 @@ function findUnconfirmed(rec_options) {
 
                         } else {
                             console.info("Block already confirmed")
-                            break_loop = true
-                            return resolve()
                         }
 
                         console.log("")
+                        await sleep(100)
                     }
                 }).catch((err) => {
-                    console.error(err)
-                    if (err == "Block not found") {
-                        console.info("This node may not have its block yet or or there is a fork in your account. You can change the node in config.json")
+                    if (err.toLowerCase().includes("block not found")) {
+                        reject("Block error: " + last_confirmed + " This node may not have its block yet or or there is a fork in your account. You can change the node in config.json")
                     } else {
-                        return reject(err)
+                        reject(err)
                     }
                 })
         }
@@ -306,6 +317,8 @@ function findUnconfirmed(rec_options) {
         return resolve()
     })
 }
+
+let FOLLOW = false
 
 async function main() {
     //get user args input
@@ -344,7 +357,7 @@ async function main() {
 
     } else if (checkHash(myArgs[0])) {
         let force = false
-        let follow = false
+        let sync = false
 
         let seconds_args = myArgs.slice(1)
 
@@ -352,7 +365,9 @@ async function main() {
             if (seconds_args[i] == "--force") {
                 force = true
             } else if (seconds_args[i] == "--follow") {
-                follow = true
+                FOLLOW = true
+            } else if (seconds_args[i] == "--sync") {
+                sync = true
             } else {
                 console.error("Invalid arg: " + seconds_args[i])
                 process.exit()
@@ -363,7 +378,7 @@ async function main() {
             .then(async function (block) {
                 if (force === true || block.confirmed === false || block.confirmed == "false") {
                     console.info("Found: " + block.hash)
-                    await updateBlock(block, follow, force)
+                    await updateBlock(block, follow, force, sync)
                         .catch((err) => {
                             console.error(err)
                             process.exit()

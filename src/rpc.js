@@ -59,7 +59,7 @@ async function lowest_frontier(account) {
                 console.log("")
                 if (nodes.length == errors.lenght) {
                     console.error(errors.join("\n"))
-                    reject("All nodes have failed")
+                    return reject("All nodes have failed")
                 }
                 results.forEach((result) => {
 
