@@ -413,7 +413,7 @@ async function confirmPendingBlocks(rec_options) {
                     status = "unconfirmed"
                     action = "confirm"
                 }
-                
+
                 if (block.account != options.account && !CONFIRMED_ACCOUNTS.includes(block.account) && !CONFIRMED_BLOCKS.includes(blockHash) && (options.force !== false || !confirmed)) {
                     console.info("Status Local: " + status)
                     console.info("Amount: " + toMegaNano(block.amount) + " Nano")
@@ -473,8 +473,8 @@ function printHelp() {
             --sync : Gets the lowest frontier from a list of public nodes (nodes.txt) \n\
             --force : Forces reconfirmation of blocks \n\
             --follow : If a receiving block depends on another chain\'s confirmation, don\'t ask the user, automatically follows and confirms blocks from that chain. \n\
-            --all-pending : When finding pending blocks (unpocketed), do not ask the user, try to confirm all \n\
             --only-pending : Attempts to confirm only pending blocks (unpocketed) \n\
+            --all-pending : When finding pending blocks (unpocketed), do not ask the user, try to confirm all \n\
         \n\ Examples: \n\
         (Recommended) Confirms all blocks in an account, including pendings, synchronizing with other nodes: \n\
             node src/index [nano_account] --sync --force --follow --all-pending \n\
@@ -482,11 +482,11 @@ function printHelp() {
         Confirms all blocks in an account, starting from a specific block: \n\
             node src/index [nano_account] [head_block] --force --follow \n\
         \n\
-        Confirms a specific block - only use this option if you are sure that all previous blocks are confirmed \n\
-            node src/index 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow \
+        Confirms a specific block - only use this option if you are sure that all previous blocks are confirmed: \n\
+            node src/index 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow \n\
         \n\
         Attempts to confirm only pending blocks (unpocketed blocks), synchronizing with other nodes: \n\
-            node src/index [nano_account] --all-pending --only-pending --sync --force --follow \n\
+            node src/index [nano_account] --only-pending  --all-pending --sync --force --follow \n\
     ')
 }
 

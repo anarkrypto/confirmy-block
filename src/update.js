@@ -6,7 +6,7 @@ const path = require('path')
 
 const local_package = require("../package.json")
 
-const check_log_file = path.join(__dirname, "./data/check_update.json")
+const check_log_file = path.join(__dirname, "./logs/check_update.json")
 
 const check_log = require(check_log_file)
 
