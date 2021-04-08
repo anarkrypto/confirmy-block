@@ -36,8 +36,6 @@ exports.checkUpdates = function () {
 
                 if (!("version" in remote_package)) return reject("Invalid remote package data: Version not found!")
 
-                console.log("Last Check: " + check_log.last_check)
-
                 check_log.last_check = parseInt(Date.now() / 1000)
                 updateFile(check_log_file, check_log)
 
