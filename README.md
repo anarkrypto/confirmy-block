@@ -14,7 +14,7 @@ This script may not work, especially if your account has a fork.
 Also note that the network can not take long to confirm these new blocks and increase the PoW will not do any good!
 
 If it takes too long to confirm and does not confirm, the most recommended is to wait.
-You can check your block in nanocrawler.cc and nanolooker.com
+You can check your block confirmation in nanocrawler.cc and nanolooker.com
 
 !! If you insist on running the script many times, it will increase the difficulty of the Work and it may be impossible to increase it more in the future !!
 
@@ -48,39 +48,60 @@ This will ensure that your node will only say that a block is confirmed when the
 
 
 #### Usage:
-[Recommended] Confirms all blocks in an account:
 
-```
+
+#### [Recommended] Confirms all blocks in an account:
+
+```console
     node src/index [nano_account] --sync --force --follow
 ```
 Example:
-```
-    node src/index nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k --sync --force --follow
+```console
+    node src/index nano_37f4cm1tu94tteodph6xwwnoowhiae3q483kgfwzd75ns7tbp9uknot4qihe --sync --force --follow
 ```
 
 ```--sync```: Gets the lowest frontier from a list of public nodes (nodes.txt)
+
 ```--force```: Forces reconfirmation of blocks
+
 ```--follow```: If a receiving block depends on another chain's confirmation, it automatically follows and confirms blocks from that chain. Without --follow the script will ask you whether you want it or not
 
-Confirms all blocks in an account, starting from a specific block:
+<br>
 
-```
+#### Confirms all blocks in an account, starting from a specific block:
+
+```console
     node src/index [nano_account] [head_block] --force --follow
 ```
 Example:
+```console
+    node src/index nano_37f4cm1tu94tteodph6xwwnoowhiae3q483kgfwzd75ns7tbp9uknot4qihe 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow
 ```
-    node src/index nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow
+<br>
+
+#### Confirms only pending blocks (unpocketed blocks), synchronizing with other nodes:
+```console
+            node src/index [nano_account] --all-pending --only-pending --sync --force --follow
+```
+Example:
+```console
+            node src/index nano_37f4cm1tu94tteodph6xwwnoowhiae3q483kgfwzd75ns7tbp9uknot4qihe --only-pending --all-pending --sync --force --follow
 ```
 
+```--only-pending```: Attempts to confirm only pending blocks
 
-Confirms a specific block - only use this option if you are sure that all previous blocks are confirmed
-```
+```--all-pending```: When finding pending blocks (unpocketed), do not ask the user, try to confirm all
+
+<br>
+
+#### Confirms a specific block - only use this option if you are sure that all previous blocks are confirmed
+```console
     node src/index [block_hash] --force
 ```
-Option ```--force``` tries to update a single block, even if the node thinks it is already confirmed
+Option ```--force``` tries to update the block, even if the node says it is already confirmed
 
 Example:
-```
+```console
     node src/index 311B4EF6724AE01E0B276A3219943A81C5C76378B581B2C1E6F946712C957699 --force --follow
 ```
 
