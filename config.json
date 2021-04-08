@@ -1,6 +1,7 @@
 {
-    "node": "http://rpc2.p2pow.online",
+    "node": "https://rpc.p2pow.online",
     "worker": "http://[::1]:7076",
+    "min_pending_amount": "0.000001",
     "enable_active_difficulty": true,
     "enable_max_difficulty": false,
     "max_difficulty_send": "100",

@@ -2,10 +2,11 @@ const axios = require("axios")
 
 const { node, worker } = require("../config.json")
 
-const fs = require("fs");
-const path = require('path');
-const nodesPath = path.join(__dirname, '..', 'nodes.txt');
-const nodes = fs.readFileSync(nodesPath).toString().replace(/\r\n/g, '\n').split('\n');
+const fs = require("fs")
+const path = require('path')
+const nodesPath = path.join(__dirname, '..', 'nodes.txt')
+let nodes = fs.readFileSync(nodesPath).toString().replace(/\r\n/g, '\n').split('\n')
+if (!nodes.includes(node)) nodes.push(node)
 
 const postRPC = function (data, nodeAddress = node) {
     let options = {}
@@ -13,7 +14,7 @@ const postRPC = function (data, nodeAddress = node) {
     return new Promise(async function (resolve, reject) {
         axios.post(nodeAddress, data, options)
             .then((res) => {
-                if (typeof res.data === 'object') {
+                if (typeof (res.data) === 'object') {
                     if ("error" in res.data) {
                         reject(res.data.error)
                     } else {
@@ -75,10 +76,10 @@ async function lowest_frontier(account) {
                     }
                 })
 
-                console.info("Lowest nodes " + lowest_nodes.join(" or "));
+                console.info("Lowest nodes " + lowest_nodes.join(" and "));
                 console.info("Last confirmed block: " + lowest_block + "\n")
 
-                resolve(lowest_block)
+                resolve({hash: lowest_block, height: lowest_height})
             })
             .catch((err) => {
                 console.log("")
@@ -145,6 +146,7 @@ function block_info(hash) {
                         block.local_timestamp = resInner.local_timestamp
                         block.confirmed = resInner.confirmed
                         block.subtype = resInner.subtype
+                        block.height = resInner.height
                         resolve(block)
                     } catch (err) {
                         reject(err)
@@ -182,6 +184,31 @@ function block_info(hash) {
                 } else {
                     reject(err)
                 }
+            })
+    })
+}
+
+function pending_blocks(account, threshold = 0) {
+    return new Promise((resolve, reject) => {
+        const data = {
+            "action": "pending",
+            "account": account,
+            "count": -1,
+            "include_active": true,
+            "sorting": true,
+            "threshold": threshold
+        }
+
+        postRPC(data)
+            .then((res) => {
+                if (!("blocks" in res)) return reject("invalid node response")
+                try {
+                    resolve(res.blocks)
+                } catch (err) {
+                    reject(err)
+                }
+            }).catch((err) => {
+                reject(err)
             })
     })
 }
@@ -276,6 +303,7 @@ module.exports = {
     account_info,
     account_history,
     block_info,
+    pending_blocks,
     broadcast,
     active_difficulty,
     lowest_frontier,

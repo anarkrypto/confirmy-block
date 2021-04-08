@@ -1,6 +1,6 @@
 {
     "name": "confirmy-block",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "description": "Finds unconfirmed blocks, increase PoW and relay to Nano network confirm",
     "main": "./src/index.js",
     "private": true,
@@ -9,7 +9,9 @@
     },
     "dependencies": {
         "axios": "^0.21.1",
+        "bignumber.js": "^9.0.1",
         "blakejs": "^1.1.0",
-        "readline-sync": "^1.4.10"
+        "readline-sync": "^1.4.10",
+        "semver": "^7.3.5"
     }
 }

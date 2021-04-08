@@ -1,6 +1,21 @@
-const { blake2b } = require('blakejs')
+const BigNumber = require("bignumber.js")
 
-function byteArrayToHex(bytes) {
+const TunedBigNumber = BigNumber.clone({
+    EXPONENTIAL_AT: 1e9,
+    DECIMAL_PLACES: 36,
+})
+
+const megaNano = "1000000000000000000000000000000" //raws
+
+exports.toRaws = function (meganano) {
+    return TunedBigNumber(megaNano).multipliedBy(meganano).toString(10)
+}
+
+exports.toMegaNano = function (raws) {
+    return TunedBigNumber(raws).dividedBy(megaNano).toString(10)
+}
+
+exports.byteArrayToHex = function (bytes) {
     let hex = []
     for (let i = 0; i < bytes.length; i++) {
         let current = bytes[i] < 0 ? bytes[i] + 256 : bytes[i];
@@ -10,7 +25,7 @@ function byteArrayToHex(bytes) {
     return hex.join("").toUpperCase();
 }
 
-function decodeNanoBase32(input) {
+exports.decodeNanoBase32 = function(input) {
     const alphabet = '13456789abcdefghijkmnopqrstuwxyz'
 
     function readChar(char) {
@@ -52,16 +67,3 @@ function decodeNanoBase32(input) {
     return output
 }
 
-exports.parseNanoAddress = function (address) {
-    let prefixLength = address.indexOf('_') + 1
-    const publicKeyBytes = decodeNanoBase32(address.substr(prefixLength, 52))
-    const publicKey = byteArrayToHex(publicKeyBytes)
-    const checksumBytes = decodeNanoBase32(address.substr(-8))
-    const computedChecksumBytes = blake2b(publicKeyBytes, null, 5).reverse()
-    const checksum = byteArrayToHex(computedChecksumBytes)
-    return {
-        publicKeyBytes,
-        publicKey,
-        checksum
-    }
-}
