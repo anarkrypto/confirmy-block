@@ -1,7 +1,7 @@
 {
     "name": "confirmy-block",
-    "version": "3.0.0",
-    "description": "Finds unconfirmed blocks, increase PoW and relay to Nano network confirm",
+    "version": "4.0.0",
+    "description": "Finds unconfirmed blocks, increase PoW and broadcast to Nano network confirm",
     "main": "./src/index.js",
     "private": true,
     "scripts": {

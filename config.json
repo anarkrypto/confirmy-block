@@ -3,7 +3,8 @@
     "worker": "http://[::1]:7076",
     "min_pending_amount": "0.000001",
     "enable_active_difficulty": true,
+    "min_consensus": 100,
     "enable_max_difficulty": false,
-    "max_difficulty_send": "100",
-    "max_difficulty_receive": "6400"
+    "max_difficulty_send": 100,
+    "max_difficulty_receive": 6400
 }

@@ -10,7 +10,7 @@ const check_log_file = path.join(__dirname, "./logs/check_update.json")
 
 const check_log = require(check_log_file)
 
-const TIME_DELAY = 60 * 60 //1 hour
+const TIME_DELAY = 60 * 60 * 2 //2 hour
 
 function updateFile(file, data){
     try {
@@ -26,9 +26,11 @@ function updateFile(file, data){
 exports.checkUpdates = function () {
     return new Promise((resolve, reject) => {
         if (check_log.last_check != 0 && parseInt(Date.now() / 1000) < ( check_log.last_check + TIME_DELAY) ) return resolve()
-        console.info("Checking confirmy-block updates...")
+        process.stdout.write("Checking confirmy-block script updates...")
         axios.get("https://raw.githubusercontent.com/anarkrypto/confirmy-block/main/package.json")
             .then((res) => {
+
+                console.log ("")
 
                 if (typeof (res.data) !== "object") return reject("Invalid remote package data: Invalid JSON!")
 

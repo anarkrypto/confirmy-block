@@ -27,6 +27,10 @@ exports.checkHash = function(hash){
       }
 }
 
+exports.checkPercentage = function(percentage){
+  return Number.isInteger(percentage) && percentage >= 0 && percentage <= 100
+}
+
 exports.checkURL = function (string) {
   let url;
   try {
