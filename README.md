@@ -29,6 +29,9 @@ You can check your block confirmation in nanocrawler.cc and nanolooker.com
 Edit `config.json`:
 - node: A valid and synced Nano node RPC. It can be a remote node, but it needs to support the following rpc calls: account_info, account_history, block_info, process 
 - worker: Responsible for increase the PoW. It can be the same Nano node or a <a href="https://github.com/nanocurrency/nano-work-server">nano-work-server</a>. It is recommended to use GPU
+- min_pending_amount: Minimum amount in mNano for pedentral blocks
+- enable_active_difficulty: Use the active_difficulty (dynamic difficulty) of the network, if it is greater than the difficulty of the current block's PoW difficulty.
+- min-consensus: Percentage of public nodes in the list (nodes.txt) that we want to wait for confirmation before going to the next block when used with --sync. Integer values from 0 to 100
 - enable_max_difficulty: If you want to skip very large PoW, leave this option enabled (true). Otherwise false
 - max_difficulty_send: Maximum PoW multiplier for send and change blocks [if enable_max_difficulty is true] 
 - max_difficulty_receive: Maximum PoW multiplier for receive blocks [if enable_max_difficulty is true] 
@@ -53,18 +56,20 @@ This will ensure that your node will only say that a block is confirmed when the
 #### [Recommended] Confirms all blocks in an account:
 
 ```console
-    node src/index [nano_account] --sync --force --follow
+    node src/index [nano_account] --sync --force --follow --min-consensus 90
 ```
 Example:
 ```console
-    node src/index nano_37f4cm1tu94tteodph6xwwnoowhiae3q483kgfwzd75ns7tbp9uknot4qihe --sync --force --follow
+    node src/index nano_37f4cm1tu94tteodph6xwwnoowhiae3q483kgfwzd75ns7tbp9uknot4qihe --sync --force --follow --min-consensus 90
 ```
 
 ```--sync```: Gets the lowest frontier from a list of public nodes (nodes.txt)
 
-```--force```: Forces reconfirmation of blocks
+```--force```: Forces reconfirmation of blocks.
 
-```--follow```: If a receiving block depends on another chain's confirmation, it automatically follows and confirms blocks from that chain. Without --follow the script will ask you whether you want it or not
+```--follow```: If a receiving block depends on another chain's confirmation, it automatically follows and confirms blocks from that chain. Without --follow the script will ask you whether you want it or not.
+
+```--min-consensus```: Integer values from 0 to 100. Percentage of public nodes in the list (nodes.txt) that we want to wait for confirmation before going to the next block when used with --sync. 
 
 <br>
 
