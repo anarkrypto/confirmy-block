@@ -9,5 +9,4 @@ https://rpc.wenano.net/api/node-api
 https://app.natrium.io/api
 https://node.somenano.com/proxy
 http://88.198.195.183:7076
-https://gonano.dev/rpc
 https://nano-rpc.trustwalletapp.com
