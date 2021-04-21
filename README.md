@@ -37,7 +37,7 @@ Edit `config.json`:
 - max_difficulty_receive: Maximum PoW multiplier for receive blocks [if enable_max_difficulty is true] 
 
 #### If you are using your own node:
-Add this lines to your `config-node.toml`
+Add this lines to your `config-node.toml`, in the [node] section.
 ```
 # Online weight minimum required to confirm a block.
 # type:string,amount,raw
