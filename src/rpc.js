@@ -125,7 +125,7 @@ function block_info(hash, nodeAddress = node) {
                     reject("block not found")
                 }
             }).catch((err) => {
-                if (err.includes("not allowed") || "err" == "Unknown command") {
+                if (err.includes("not allowed") || err == "Unknown command") {
                     data = {
                         "action": "block_info",
                         "json_block": "true",
