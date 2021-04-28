@@ -37,7 +37,8 @@ Edit `config.json`:
 - max_difficulty_receive: Maximum PoW multiplier for receive blocks [if enable_max_difficulty is true] 
 
 #### If you are using your own node:
-Add this lines to your `config-node.toml`, in the [node] section.
+
+1. Add this lines to your `config-node.toml`, in the [node] section.
 ```
 # Online weight minimum required to confirm a block.
 # type:string,amount,raw
@@ -49,8 +50,10 @@ online_weight_quorum = 67
 ```
 This will ensure that your node will only say that a block is confirmed when the 67% vote quorum has been reached
 
+2. If you are using any proxy on your node, such as NanoRPCProxy, be sure to activate the following commands (actions): ```account_info, account_history, blocks_info or block_info, pending, process, active_difficulty```
 
-#### Usage:
+
+### Usage:
 
 
 #### [Recommended] Confirms all blocks in an account:
