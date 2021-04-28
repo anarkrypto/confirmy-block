@@ -50,7 +50,10 @@ online_weight_quorum = 67
 ```
 This will ensure that your node will only say that a block is confirmed when the 67% vote quorum has been reached
 
-2. If you are using any proxy on your node, such as NanoRPCProxy, be sure to activate the following commands (actions): ```account_info, account_history, blocks_info or block_info, pending, process, active_difficulty```
+2. If you are using any proxy on your node, such as <a href="https://github.com/Joohansson/NanoRPCProxy" target="_blank">NanoRPCProxy</a>, be sure to activate the following commands (actions):
+```
+    account_info, account_history, blocks_info or block_info, pending, process, active_difficulty
+```
 
 
 ### Usage:
