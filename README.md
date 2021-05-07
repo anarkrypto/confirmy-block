@@ -21,7 +21,7 @@ You can check your block confirmation in nanocrawler.cc and nanolooker.com
 #### Clone and install dependencies
 ```
     git clone https://github.com/anarkrypto/confirmy-block
-    cd confirmy-blocks
+    cd confirmy-block
     npm install
 ```
 
