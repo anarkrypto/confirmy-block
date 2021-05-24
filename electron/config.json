@@ -1,0 +1,10 @@
+{
+  "node": "https://rpc.p2pow.online",
+  "worker": "http://[::1]:7099",
+  "min_pending_amount": 0.00216,
+  "enable_active_difficulty": true,
+  "min_consensus": 100,
+  "enable_max_difficulty": false,
+  "max_difficulty_send": 1000,
+  "max_difficulty_receive": 64000
+}

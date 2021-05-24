@@ -1,0 +1,59 @@
+{
+  "name": "confirmy-block",
+  "productName": "confirmy-block",
+  "description": "Confirm your Nano Blocks",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "anarkrypto",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "axios": "^0.21.1",
+    "bignumber.js": "^9.0.1",
+    "blakejs": "^1.1.0",
+    "readline-sync": "^1.4.10",
+    "semver": "^7.3.5",
+    "ps-node": "^0.1.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+    "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "electron": "^13.0.0-beta.8"
+  },
+  "license": "ISC",
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "soggy_ring_cry_kmezu"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
+  }
+}

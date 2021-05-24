@@ -1,0 +1,12 @@
+https://rpc.p2pow.online
+https://mynano.ninja/api/node
+https://nault.nanos.cc/proxy
+https://proxy.powernode.cc/proxy
+https://rainstorm.city/api
+https://vault.nanocrawler.cc/api/node-api
+https://www.nanolooker.com/api/rpc
+https://rpc.wenano.net/api/node-api
+https://app.natrium.io/api
+https://node.somenano.com/proxy
+https://gonano.dev/rpc
+http://88.198.195.183:7076

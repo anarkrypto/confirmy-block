@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmy Block</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"> -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="./img/logo.png" width="80px">
+            <span class="title">Confirmy-block</span>
+        </div>
+    </div>
+
+    <div class="box">
+
+        <ul class="timeline" id="timeline">
+            <li class="li">
+                <div class="status">
+                    <h4><i class="glyphicon glyphicon-home"></i> Home</h4>
+                </div>
+            </li>
+            <li class="li">
+                <div class="status">
+                    <h4> Choose Node </h4>
+                </div>
+            </li>
+            <li class="li">
+                <div class="status">
+                    <h4> Choose Worker </h4>
+                </div>
+            </li>
+            <li class="li">
+                <div class="status">
+                    <h4> General Config </h4>
+                </div>
+            </li>
+            <li class="li">
+                <div class="status">
+                    <h4> Start Confirming </h4>
+                </div>
+            </li>
+        </ul>
+
+        <section id="section0" class="">
+            <h2>Welcome to Confirmy-block</h2>
+            <p class="text">Here you can try confirm your uncorfimed blocks</p>
+            <p class="text">Just follow the steps:</p>
+            <img src="./img/logo.png" class="logo" />
+            <br><br>
+            <button id="next_0" onclick="nextSection(1)" class="iconBtn" style="width: 180px; margin-left: calc(50% - 90px);">Start <i class="glyphicon glyphicon-play"></i></button>
+            <div class="links" style="width: 100%; text-align: center; margin: 20px 0">
+                <a href="#" onclick="nextSection('1_rep')" id="openRepInfo">Change your Representative <i class="glyphicon glyphicon-user"></i></a>
+            </div>
+            <div class="footer">
+                <div class="links">
+                    <a href="#">About <i class="glyphicon glyphicon-info-sign"></i></a>
+                    <a href="https://github.com/anarkrypto/confirmy-block" target="_blank">Github <i class="fab fa-github"></i></a>
+                    <a href="https://discord.gg/R4dEfhNEVZ" target="_blank">Discord <i class="fab fa-discord"></i></a>
+                    <a href="https://tools.nanos.cc/?tool=pay&address=nano_3kc8wwut3u8g1kwa6x4drkzu346bdbyqzsn14tmabrpeobn8igksfqkzajbb&amount=&recipient=Anarkrypto&message=Donation%20to%20Anarkrypto" target="_blank">Donate <i class="fas fa-hand-holding-heart"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <section id="section1_rep" class="hidden">
+            <h2>Confirmy Representative</h2>
+            <p class="text">Changing your Rep to this one will speed up your confirmations</p>
+            <p class="text">We use confirmy to force re-elections on all accounts using our Rep</p>
+            <img src="./img/qr.png" class="qr" />
+            <br><br>
+            <p class="text">
+                nano_3kc8wwut3u8g1kwa6x4drkzu346bdbyqzsn14tmabrpeobn8igksfqkzajbb
+            </p>
+            <br>
+            <div class="delegators loading scrolly" id="delegators">
+                <p class="text">Delegators Accounts:</p>
+                <ul>
+                </ul>
+            </div>
+        </section>
+
+        <section id="section1" class="hidden">
+            <div class="title">
+                <img class="section_icon" src="img/nano_node.svg">
+                <h2>Nano Node</h2>
+            </div>
+            <p class="text">First, you need choose a Nano node.</p>
+            <p class="text">It will allow your worker to check and broadcast Nano transactions.</p>
+            <p class="text">Choose one of the options</p>
+
+            <div class="collapsible_list">
+
+                <div class="collapsible active">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">Use a remote pubic Nano Node.</label>
+                    <div class="content">
+                        <div class="option_input">
+                            <label for="public_nano_node">Choose a public node</label>
+                            <div style="position: relative; width: 100%; height: 42px;">
+                                <div id="public_nano_node" class="custom-select">
+                                    <select>
+                                        <option value="select">Select a public node:</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="connectPublicNanoNode" class="iconBtn">Connect <i
+                                class="glyphicon glyphicon-open"></i></button>
+
+                    </div>
+                </div>
+
+                <div class="collapsible">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">I Have a Nano Node</label>
+                    <div class="content">
+                        <div class="option_input">
+                            <label for="nano_node">Nano node Address (RPC port)</label>
+                            <input type="text" id="nano_node" placeholder="Ex: http://[::1]:7076" style="width: 100%">
+                        </div>
+                        <button id="connectNanoNode" class="iconBtn">Connect <i class="glyphicon glyphicon-open"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <button id="next_1" onclick="nextSection(2)" class="nextBtn iconBtn" disabled="true">Next <i
+                    class="glyphicon glyphicon-menu-right"></i></button>
+        </section>
+
+
+        <section id="section2" class="hidden">
+            <div class="title">
+                <img class="section_icon" src="img/worker.png">
+                <h2>Your Work Server</h2>
+            </div>
+            <p class="text">Your work-server is responsible for solve the PoW</p>
+
+            <div class="collapsible_list">
+                <div class="collapsible active">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">Start Worker</label>
+
+                    <div class="content contentConsole" id="contentStartWorker">
+                        <div class="option_input">
+                            <div class="special_input">
+                                <input type="text" id="nano_worker_args" placeholder="-l [::1]:7099 --gpu 0:0"
+                                    value="-l [::1]:7099 --gpu 0:0">
+                                <span class="before">./nano-work-server</span>
+                            </div>
+                            <button id="startNanoWorkServer" class="iconBtn">Start <i
+                                    class="glyphicon glyphicon-off"></i></button>
+                            <div id="workerResponse" class="workerResponse console"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collapsible">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">I Have a Nano Work Server</label>
+                    <div class="content contentConnectWorker" id="contentConnectWorker">
+                        <div class="option_input">
+                            <label for="nano_node">Your work-server address</label>
+                            <input type="text" id="connect_work_server" placeholder="Ex: http://[::1]:7076"
+                                value="http://[::1]:7076">
+                            <button id="connectNanoWorkServer" style="margin-top: 0px;" class="iconBtn">Connect <i
+                                    class="glyphicon glyphicon-open"></i>
+                            </button>
+                            <div id="connectWorkerResponse" class="connectWorkerResponse console"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="next_2" class="nextBtn iconBtn" onclick="nextSection(3)" disabled="true">Next <i
+                    class="glyphicon glyphicon-menu-right"></i></button>
+        </section>
+
+        <section id="section3" class="settings hidden">
+            <div class="title">
+                <img class="section_icon" src="img/settings.svg">
+                <h2>Just a few more settings</h2>
+            </div>
+            <p class="text">Configure how your script should work. You can leave it as default.</p>
+            <div class="collapsible_list">
+                <div class="collapsible" id="min_pending_amount">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">
+                        Min Pending Amount
+                        <div id="min_pending_amount_value" class="value"><span class="range-slider__value">0.00001</span>
+                            Nano</div>
+                    </label>
+                    <div class="content">
+                        <p class="description">
+                            Adjust the minimum amount of Nano to be used on pending blocks (not yet received)
+                        </p>
+                        <div class="controlSlider">
+                            <div class="water-slider">
+                                <div class="range-slider">
+                                    <input id="range_slider_val_min_pending_amount"
+                                        class="range-slider__range browser-default" type="range" value="0" min="1"
+                                        max="1000" data-value_target="min_pending_amount_value"
+                                        style="background: linear-gradient(90deg, rgb(83, 182, 172) 19.9199%, rgba(245, 245, 245, 0.5) 20.0199%);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collapsible" id="enable_active_difficulty">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">
+                        Active Difficulty
+                        <div class="toggle toggle-value">
+                            <input type="radio" name="enableActiveDifficulty" value=""
+                                id="input_enable_active_difficulty" checked="checked" />
+                            <label for="input_enable_active_difficulty" id="label_enable_active_difficulty">Enable</label>
+                            <input type="radio" name="enableActiveDifficulty" value=""
+                                id="input_disable_active_difficulty" />
+                            <label for="input_disable_active_difficulty" id="label_disable_active_difficulty">Disable</label>
+                        </div>
+                    </label>
+                    <div class="content">
+                        <p class="description">
+                            Active difficulty is the dynamic difficulty of the network.
+                            <br>Enable it to ensure that the difficulty of your PoW will always be high enough to be
+                            prioritized.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="collapsible" id="min_consensus">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">
+                        Min Consensus
+                        <div id="min_consensus_value" class="value"><span class="range-slider__value">100</span>%</div>
+                    </label>
+                    <div class="content">
+                        <p class="description">
+                            Adjust the minimum percentage of nodes in the list that should recognize a block as
+                            confirmed before the script proceeds to the next block.
+                        </p>
+                        <div class="controlSlider">
+                            <div class="water-slider">
+                                <div class="range-slider">
+                                    <input id="range_slider_val_min_consensus"
+                                        class="range-slider__range browser-default" type="range" value="10000000"
+                                        min="0" max="100" data-value_target="min_consensus_value"
+                                        style="background: linear-gradient(90deg, rgb(83, 182, 172) 19.9199%, rgba(245, 245, 245, 0.5) 20.0199%);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="collapsible" id="enable_max_difficulty">
+                    <div class="openCloseBtn"></div>
+                    <label class="label_collapsible">
+                        Max Difficulty
+                        <div class="toggle toggle-value">
+                            <input type="radio" name="enableMaxDifficulty" value="" id="input_enable_max_difficulty" />
+                            <label for="input_enable_max_difficulty" id="label_enable_max_difficulty">Enabled</label>
+                            <input type="radio" name="enableMaxDifficulty" value="" id="input_disable_max_difficulty"
+                                checked="checked" />
+                            <label for="input_disable_max_difficulty" id="label_disable_max_difficulty">Disabled</label>
+                        </div>
+                    </label>
+                    <div class="content median">
+                        <p class="description">
+                            Active difficulty is the dynamic difficulty of the network.
+                            <br>Enable it to ensure that the difficulty of your PoW will always be high enough to be
+                            prioritized.
+                        </p>
+                        <div class="" style="display: flex; justify-content: space-around;">
+                            <div class="difficulty-stepper">
+                                <label class="stepper_label">Difficulty</label>
+                                <span class="stepper">
+                                    <button class="minus" data-type="subtract">–</button>
+                                    <input type="number" id="stepper_difficulty" value="1000" min="10" max="1000000"
+                                        step="10" readonly>
+                                    <button class="plus" data-type="add">+</button>
+                                </span>
+                            </div>
+                            <div class="difficulty-receive-stepper">
+                                <label class="stepper_label">Difficulty Receive (1/64)</label>
+                                <span class="stepper">
+                                    <button class="minus" data-type="subtract">–</button>
+                                    <input type="number" id="stepper_difficulty_receive" value="64000" min="10"
+                                        max="1000000" step="10" readonly>
+                                    <button class="plus" data-type="add">+</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <button id="saveSettings" onclick="nextSection(4)" class="nextBtn iconBtn">Next <i
+                    class="glyphicon glyphicon-menu-right"></i></button>
+        </section>
+
+        <section id="section4" class="hidden">
+            <div class="title">
+                <img class="section_icon" src="img/settings.svg">
+                <h2>Start Confirming!</h2>
+            </div>
+
+            <p class="text">Add the account address or the block</p>
+
+            <input type="text" id="target_to_confirm" placeholder="Enter the Nano Address or Block Hash"
+                class="inputText target_to_confirm"
+                value="nano_3cpz7oh9qr5b7obbcb5867omqf8esix4sdd5w6mh8kkknamjgbnwrimxsaaf">
+            <div class="validate"></div>
+
+            <div class="collapsible" id="import_list" style="padding-bottom: 20px;">
+                <div class="openCloseBtn"></div>
+                <label class="label_collapsible">Or import your addresses list .txt</label>
+                <div class="content importListContent">
+
+                    <div id="drop_zone" class="drop_zone" ondrop="dropHandler(event);"
+                        ondragover="dragOverHandler(event);">
+                        <div class="zone_content">
+                            <svg class="box_icon" width="50" height="43" viewBox="0 0 50 43" fill="#8e9297">
+                                <path
+                                    d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z">
+                                </path>
+                            </svg>
+                            <br>
+                            <label>Drop files here or</label>
+                            <label class="chooseFile iconBtn">Open <i
+                                    class="glyphicon glyphicon-folder-open"></i></label>
+                            <input type="file" name="files[]" id="files" class="box_file"
+                                data-multiple-caption="{count} files selected" multiple="">
+                        </div>
+                        <div id="selected_file" class="selected_file hidden">
+                            <div class="left">
+                                <img src="img/json.svg" class="json_icon">
+                                <div class="filename"></div>
+                                <div class="close" onclick="removeFile()">x</div>
+                            </div>
+                            <div class="right">
+                                <button>Import</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="validate"></div> <!-- rgb(83, 182, 172) -->
+                    <div class="errorMessage"></div> <!-- color: rgb(234, 83, 101); -->
+                </div>
+            </div>
+
+            <div id="console" class="console" style="display: none;"></div>
+
+            <button id="tryConfirm" class="iconBtn" style="width: 160px; margin-left: calc(50% - 90px);">Try Confirm! <i
+                    class="glyphicon glyphicon-ok"></i></button>
+    </div>
+    </section>
+
+    <script type="text/javascript" src="js/qrcode.js"></script>
+
+    <script src="./renderer.js"></script>
+
+</body>
+
+</html>
