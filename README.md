@@ -1,5 +1,18 @@
 # Confirmy Block
 
+*************************************
+### Mission Accomplished! archiving the repo
+
+Confirmy-Block was a project created to help the community during the spam on Nano's network that generated desynchronization between nodes, preventing the confirmation of transactions.
+
+Several community members joined the task force and together we were able to confirm between tens of thousands of transactions from users and major exchanges including Binance, Kraken, KuCoin and Huobi.
+
+Thanks to everyone who was a part of it!
+
+Read more at: https://www.reddit.com/r/nanocurrency/comments/nk7qcj/the_success_of_the_confirmy_block/
+
+*************************************
+
 This is a experimental script to help confirm unconfirmed Nano transactions.
 
 - It fetches the first unconfirmed block, increases the PoW and republish it to the a list of public nodes, waits for confirmation from PRs and continues to the next block.
